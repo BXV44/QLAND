@@ -45,6 +45,11 @@ client.on('messageCreate', async (message) => {
           inline: false,
         },
         {
+          name: '`&mc <nombre>`',
+          value: 'Supprime un nombre de messages (1-100). *(Gérer les messages requis)*',
+          inline: false,
+        },
+        {
           name: '`&setup`',
           value: 'Envoie le panel de vérification dans le salon configuré. *(Admin requis)*',
           inline: false,
@@ -95,6 +100,31 @@ client.on('messageCreate', async (message) => {
       .setFooter({ text: 'QLAND Bot' })
       .setTimestamp();
     return message.reply({ embeds: [embed] });
+  }
+
+  // ── &mc ────────────────────────────────────────────────────────────────────
+  if (command === 'mc') {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+      return message.reply('❌ Tu dois avoir la permission **Gérer les messages** pour utiliser cette commande.');
+    }
+
+    const amount = parseInt(args[0]);
+    if (isNaN(amount) || amount < 1 || amount > 100) {
+      return message.reply('❌ Indique un nombre entre **1** et **100**. Ex: `&mc 10`');
+    }
+
+    try {
+      await message.delete();
+      const deleted = await message.channel.bulkDelete(amount, true);
+      const confirm = await message.channel.send(
+        `🧹 **${deleted.size}** message${deleted.size > 1 ? 's' : ''} supprimé${deleted.size > 1 ? 's' : ''}.`
+      );
+      setTimeout(() => confirm.delete().catch(() => {}), 3000);
+    } catch (err) {
+      console.error('Erreur bulkDelete :', err);
+      message.channel.send('❌ Erreur lors de la suppression. Les messages de plus de 14 jours ne peuvent pas être supprimés.');
+    }
+    return;
   }
 
   // ── &setup ─────────────────────────────────────────────────────────────────
