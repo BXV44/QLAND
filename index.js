@@ -11,6 +11,7 @@ const client = new Client({
 
 const TOKEN = process.env.TOKEN;
 const PREFIX = '&';
+const OWNER_ID = '1222217828770516992'; // Seul utilisateur autorisé à utiliser &mc
 
 // IDs de configuration
 const VERIFICATION_CHANNEL_ID = '1512416583136579694'; // Channel de vérification (visible seulement aux non-vérifiés)
@@ -104,8 +105,8 @@ client.on('messageCreate', async (message) => {
 
   // ── &mc ────────────────────────────────────────────────────────────────────
   if (command === 'mc') {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
-      return message.reply('❌ Tu dois avoir la permission **Gérer les messages** pour utiliser cette commande.');
+    if (message.author.id !== OWNER_ID) {
+      return message.reply('❌ Seul le **owner** peut utiliser cette commande.');
     }
 
     const amount = parseInt(args[0]);
