@@ -16,6 +16,7 @@ const PREFIX = '&';
 const VERIFICATION_CHANNEL_ID = '1512416583136579694'; // Channel de vérification (visible seulement aux non-vérifiés)
 const VERIFIED_ROLE_ID = '1512416266990780606';         // Rôle donné après vérification
 const RULES_CHANNEL_ID = '1512461738753392750';          // Channel où envoyer le panel de vérification
+const WELCOME_CHANNEL_ID = '1512399171016200282';        // Channel de bienvenue
 
 client.once('ready', () => {
   console.log(`✅ Bot connecté en tant que ${client.user.tag}`);
@@ -88,6 +89,7 @@ client.on('messageCreate', async (message) => {
         { name: 'Préfixe', value: PREFIX, inline: true },
         { name: 'Channel vérification', value: `<#${VERIFICATION_CHANNEL_ID}>`, inline: true },
         { name: 'Channel règlement', value: `<#${RULES_CHANNEL_ID}>`, inline: true },
+        { name: 'Channel bienvenue', value: `<#${WELCOME_CHANNEL_ID}>`, inline: true },
         { name: 'Rôle vérifié', value: `<@&${VERIFIED_ROLE_ID}>`, inline: true },
       )
       .setFooter({ text: 'QLAND Bot' })
@@ -181,14 +183,39 @@ client.on('interactionCreate', async (interaction) => {
 // ─── Nouveau membre ───────────────────────────────────────────────────────────
 
 client.on('guildMemberAdd', async (member) => {
-  // Envoyer un message privé de bienvenue
+  const guild = member.guild;
+  const memberCount = guild.memberCount;
+
+  // ── Message de bienvenue dans le channel dédié ──────────────────────────────
+  const welcomeChannel = guild.channels.cache.get(WELCOME_CHANNEL_ID);
+  if (welcomeChannel) {
+    const welcomeEmbed = new EmbedBuilder()
+      .setColor(0x5865F2)
+      .setAuthor({
+        name: `${member.user.username} vient d'arriver !`,
+        iconURL: member.user.displayAvatarURL({ dynamic: true }),
+      })
+      .setTitle('👋 Bienvenue sur QLAND !')
+      .setDescription(
+        `Heureux de t'accueillir parmi nous, <@${member.id}> ! 🎉\n\n` +
+        `📋 Rends-toi dans <#${VERIFICATION_CHANNEL_ID}> pour lire le règlement et accéder au serveur.\n\n` +
+        `Tu es le **${memberCount}ème membre** du serveur !`
+      )
+      .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 256 }))
+      .setFooter({ text: 'QLAND • Bienvenue !' })
+      .setTimestamp();
+
+    await welcomeChannel.send({ embeds: [welcomeEmbed] });
+  }
+
+  // ── Message privé de bienvenue ───────────────────────────────────────────────
   try {
     const dmEmbed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle('👋 Bienvenue sur QLAND !')
       .setDescription(
         `Bonjour **${member.user.username}** !\n\n` +
-        `Rends-toi dans le salon <#${RULES_CHANNEL_ID}> et accepte le règlement pour accéder au serveur.`
+        `Rends-toi dans le salon <#${VERIFICATION_CHANNEL_ID}> et accepte le règlement pour accéder au serveur.`
       )
       .setTimestamp();
     await member.send({ embeds: [dmEmbed] });
